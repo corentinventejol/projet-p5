@@ -16,9 +16,12 @@ fetch(`http://localhost:3000/api/products/${productId}`)
 
     // Mettez l'image dans la div avec la classe "item__img"
     const itemImg = document.querySelector('.item__img');
-    itemImg.setAttribute('src', imageUrl);
-    itemImg.setAttribute('alt', altTxt);
+    const imgElement = document.createElement('img');
+    imgElement.setAttribute('src', imageUrl);
+    imgElement.setAttribute('alt', altTxt);
+    itemImg.appendChild(imgElement);
 
+    
     // Mettez le nom du produit dans une balise h1
     const productName = document.querySelector('h1');
     productName.textContent = name;
@@ -32,7 +35,7 @@ fetch(`http://localhost:3000/api/products/${productId}`)
     productDescription.textContent = description;
 
     // Mettez les couleurs disponibles dans la balise option
-    const colorOptions = document.querySelector('#color-options');
+    const colorOptions = document.querySelector('#colors');
     colors.forEach(color => {
       const option = document.createElement('option');
       option.textContent = color;
