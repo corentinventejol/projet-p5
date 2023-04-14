@@ -1,45 +1,106 @@
-// Obtenez les paramètres de recherche de l'URL
-const params = new URLSearchParams(window.location.search);
+let url = new URL(location.href); //déclare une variable valant l'url de la page actuelle
+let kanapPageId = url.searchParams.get("id"); //récupère l'id contenu dans l'url de la page actuelle
 
-// Obtenez l'identifiant du produit à partir des paramètres de recherche
-const productId = params.get('id');
+const zoneImgKanap = document.querySelector(".item__img");
+const nomKanap = document.querySelector("#title");
+const prixKanap = document.querySelector("#price");			// emplacements des différentes zones
+const speechKanap = document.querySelector("#description");	// d'insertion des variables dynamiques
+const colorOptions = document.querySelector("#colors");
+const getProductQuantity = document.querySelector("#quantity");
 
-// Utilisez l'API pour obtenir les informations sur le produit
-fetch(`http://localhost:3000/api/products/${productId}`)
-  .then(response => response.json())
-  .then(data => {
-    // Récupérez les informations du produit de la réponse de l'API
-    const { colors, _id, name, price, imageUrl, description, altTxt } = data;
 
-    // Changez le titre de la page avec le nom du produit
-    document.title = name;
+fetch(`http://localhost:3000/api/products/${kanapPageId}`) //je ne selectionne QUE la partie du JSON qui m'interesse en fonction de l'id du kanap concerné à fetch
+	.then((res) => res.json())
+	.then((object) => {
+		const imgKanap = object.imageUrl;
+		const nameKanap = object.name;
+		const priceKanap = object.price;
+		const descriptKanap = object.description;
+		const colorsKanap = object.colors;
 
-    // Mettez l'image dans la div avec la classe "item__img"
-    const itemImg = document.querySelector('.item__img');
-    const imgElement = document.createElement('img');
-    imgElement.setAttribute('src', imageUrl);
-    imgElement.setAttribute('alt', altTxt);
-    itemImg.appendChild(imgElement);
+		for (let couleur of colorsKanap) {
+			colorOptions.innerHTML += `<option value="${couleur}">${couleur}</option>`;
+		}
+		zoneImgKanap.innerHTML += `<img src="${imgKanap}" alt="Photographie d'un canapé">`;
+		nomKanap.innerText += `${nameKanap}`;
+		prixKanap.innerText += `${priceKanap} `;
+		speechKanap.innerText += `${descriptKanap}`;
+		  
+		
 
-    
-    // Mettez le nom du produit dans une balise h1
-    const productName = document.querySelector('h1');
-    productName.textContent = name;
+		// je crée une fonction déclenchée au clic sur le bouton ADDTOCART
 
-    // Mettez le prix du produit dans une balise span avec l'id "price"
-    const productPrice = document.querySelector('#price');
-    productPrice.textContent = price;
+		const button = document.getElementById("addToCart");
 
-    // Mettez la description du produit dans une balise p avec l'id "description"
-    const productDescription = document.querySelector('#description');
-    productDescription.textContent = description;
+		//---------------------------------------localStorage----------------------------------------------------
 
-    // Mettez les couleurs disponibles dans la balise option
-    const colorOptions = document.querySelector('#colors');
-    colors.forEach(color => {
-      const option = document.createElement('option');
-      option.textContent = color;
-      colorOptions.appendChild(option);
-    });
-  })
-  .catch(error => console.error(error));
+		// liste des actions déclenchées au clic sur le bouton "ajouter"
+		button.addEventListener("click", () => {
+			let basketValue = {
+				//initialisation de la variable basketValue
+				idSelectedProduct: kanapPageId,
+				nameSelectedProduct: nameKanap,
+				colorSelectedProduct: colorOptions.value,
+				quantity: getProductQuantity.value
+			};
+
+			//je crée une fonction de récupération du panier
+			function getBasket() {
+				let basketValue = JSON.parse(localStorage.getItem("kanapLs"));
+				if (basketValue === null) {
+					return [];				//si le LocalStorage est vide, on crée un tableau vide
+				} else {
+					return basketValue
+				}
+			}
+
+			//je crée une fonction d'ajout au panier avec argument product
+			function addBasket(product) {
+				let basketValue = getBasket();
+				let foundProducts = basketValue.find(
+					/// on définit foundProducts comme l'article à trouver
+					(item) =>
+						item.idSelectedProduct === product.idSelectedProduct &&
+						item.colorSelectedProduct === product.colorSelectedProduct	
+				); //si les produits du panier et les produits du LS n'ont pas même ID et même couleur
+					// il retournera undefined  
+				if (
+					foundProducts == undefined &&
+					colorOptions.value != "" &&			//si les consitions sont OK
+					getProductQuantity.value > 0 &&
+					getProductQuantity.value <= 100
+				) {
+					product.quantity = getProductQuantity.value; //la quantité saisie est définie 
+					basketValue.push(product);					 //dans le Ls
+				} else {
+					let newQuantity =
+						parseInt(foundProducts.quantity) +
+						parseInt(getProductQuantity.value); //CUMUL Quantité si présent ID et color
+					foundProducts.quantity = newQuantity;
+				}
+				saveBasket(basketValue);
+				alert(
+					`Le canapé ${nameKanap} ${colorOptions.value} a été ajouté en ${getProductQuantity.value} exemplaires à votre panier !`
+				);
+			}
+			//je crée une fonction de sauvegarde du panier
+			function saveBasket(basketValue) {
+				localStorage.setItem("kanapLs", JSON.stringify(basketValue));
+			}
+
+			// Si le choix de couleur est vide
+			if (colorOptions.value === "") {
+				alert("Veuillez choisir une couleur, SVP");
+			}
+			// Si la quantité choisie est nulle OU si elle dépasse 100
+			else if (
+				getProductQuantity.value <= 0 ||
+				getProductQuantity.value > 100
+			) {
+				alert("Veuillez sélectionner une quantité correcte, SVP");
+			} else {
+				//Si tout est OK, on envoie le panier au LS
+				addBasket(basketValue);
+			}
+		});
+	});
