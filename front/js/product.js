@@ -63,24 +63,27 @@ fetch(`http://localhost:3000/api/products/${kanapPageId}`) //je ne selectionne Q
 					item.idSelectedProduct === product.idSelectedProduct &&
 					item.colorSelectedProduct === product.colorSelectedProduct
 				);
+				let parsedQuantity = parseInt(getProductQuantity.value);
 				if (
 				  foundProducts == undefined &&
 				  colorOptions.value != "" &&
-				  parseInt(getProductQuantity.value) === getProductQuantity.value && // Vérifier que la quantité est un nombre entier
-				  getProductQuantity.value > 0 &&
-				  getProductQuantity.value <= 100
+				  parsedQuantity > 0 &&
+				  parsedQuantity === parseFloat(getProductQuantity.value) // Vérifier que la quantité est un nombre entier ou décimal rond
 				) {
 				  product.quantity = getProductQuantity.value;
 				  basketValue.push(product);
 				} else if (
 				  foundProducts != undefined &&
-				  parseInt(getProductQuantity.value) === getProductQuantity.value // Vérifier que la quantité est un nombre entier
+				  parsedQuantity > 0 &&
+				  parsedQuantity === parseFloat(getProductQuantity.value) // Vérifier que la quantité est un nombre entier ou décimal rond
 				) {
 				  let newQuantity =
 					parseInt(foundProducts.quantity) + parseInt(getProductQuantity.value);
 				  foundProducts.quantity = newQuantity;
 				} else {
-				  alert("La quantité saisie n'est pas un nombre entier ou est invalide !");
+				  alert(
+					"La quantité saisie doit être un nombre entier ou un nombre décimal rond et doit être supérieure à zéro."
+				  );
 				  return;
 				}
 				saveBasket(basketValue);
