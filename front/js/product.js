@@ -9,6 +9,7 @@ const colorOptions = document.querySelector("#colors");
 const getProductQuantity = document.querySelector("#quantity");
 
 
+
 fetch(`http://localhost:3000/api/products/${kanapPageId}`) //je ne selectionne QUE la partie du JSON qui m'interesse en fonction de l'id du kanap concerné à fetch
 	.then((res) => res.json())
 	.then((object) => {
@@ -58,31 +59,35 @@ fetch(`http://localhost:3000/api/products/${kanapPageId}`) //je ne selectionne Q
 			function addBasket(product) {
 				let basketValue = getBasket();
 				let foundProducts = basketValue.find(
-					/// on définit foundProducts comme l'article à trouver
-					(item) =>
-						item.idSelectedProduct === product.idSelectedProduct &&
-						item.colorSelectedProduct === product.colorSelectedProduct	
-				); //si les produits du panier et les produits du LS n'ont pas même ID et même couleur
-					// il retournera undefined  
+				  (item) =>
+					item.idSelectedProduct === product.idSelectedProduct &&
+					item.colorSelectedProduct === product.colorSelectedProduct
+				);
 				if (
-					foundProducts == undefined &&
-					colorOptions.value != "" &&			//si les consitions sont OK
-					getProductQuantity.value > 0 &&
-					getProductQuantity.value <= 100
+				  foundProducts == undefined &&
+				  colorOptions.value != "" &&
+				  parseInt(getProductQuantity.value) === getProductQuantity.value && // Vérifier que la quantité est un nombre entier
+				  getProductQuantity.value > 0 &&
+				  getProductQuantity.value <= 100
 				) {
-					product.quantity = getProductQuantity.value; //la quantité saisie est définie 
-					basketValue.push(product);					 //dans le Ls
+				  product.quantity = getProductQuantity.value;
+				  basketValue.push(product);
+				} else if (
+				  foundProducts != undefined &&
+				  parseInt(getProductQuantity.value) === getProductQuantity.value // Vérifier que la quantité est un nombre entier
+				) {
+				  let newQuantity =
+					parseInt(foundProducts.quantity) + parseInt(getProductQuantity.value);
+				  foundProducts.quantity = newQuantity;
 				} else {
-					let newQuantity =
-						parseInt(foundProducts.quantity) +
-						parseInt(getProductQuantity.value); //CUMUL Quantité si présent ID et color
-					foundProducts.quantity = newQuantity;
+				  alert("La quantité saisie n'est pas un nombre entier ou est invalide !");
+				  return;
 				}
 				saveBasket(basketValue);
 				alert(
-					`Le canapé ${nameKanap} ${colorOptions.value} a été ajouté en ${getProductQuantity.value} exemplaires à votre panier !`
+				  `Le canapé ${nameKanap} ${colorOptions.value} a été ajouté en ${getProductQuantity.value} exemplaires à votre panier !`
 				);
-			}
+			  }			  
 			//je crée une fonction de sauvegarde du panier
 			function saveBasket(basketValue) {
 				localStorage.setItem("kanapLs", JSON.stringify(basketValue));
