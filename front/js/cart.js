@@ -318,6 +318,3 @@ function orderValidation() {
 
 orderValidation();
 });
-
-
-
